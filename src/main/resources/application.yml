@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: bk-payment-test
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+  devtools:
+    restart:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+
+# 비플페이 API (이용기관 → 비플페이)
+bpay:
+  base-url: https://dev-biz-zero.bizplay.co.kr
+  # 역거래 API (비플페이 → 이용기관) 목적지
+  reverse-base-url: https://dev-gift.appply.co.kr
