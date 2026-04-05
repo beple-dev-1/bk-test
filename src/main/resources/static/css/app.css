@@ -1,0 +1,631 @@
+/* =========================================
+   BK Payment Test — Light Theme
+   ========================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f6f8;
+    color: #1a1a2e;
+}
+
+.app-wrapper {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* =========================================
+   Panel Toggle Switch
+   ========================================= */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f0f4ff;
+    border: 1px solid #c7d7f0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.toggle-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #9ca3af;
+    flex: 1;
+}
+
+.toggle-label.label-main { text-align: right; }
+.toggle-label.label-reverse { text-align: left; }
+
+.toggle-label.is-active {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.toggle-row .form-check { margin: 0; padding: 0; }
+.toggle-row .form-check-input {
+    cursor: pointer;
+    width: 2.2em;
+    height: 1.2em;
+    margin: 0;
+}
+
+/* Reverse panel header */
+.reverse-panel-desc {
+    font-size: 11px;
+    color: #6b7280;
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+/* Input group inside reverse cards */
+.reverse-input-group {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.reverse-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reverse-input-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4b5563;
+    min-width: 80px;
+    flex-shrink: 0;
+    font-family: 'Consolas', monospace;
+}
+
+.reverse-input-hint {
+    font-size: 10px;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.reverse-sub-divider {
+    font-size: 10px;
+    font-weight: 700;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 8px 0 4px;
+    padding-top: 6px;
+    border-top: 1px dashed #ddd6fe;
+}
+
+/* =========================================
+   Left Panel
+   ========================================= */
+.left-panel {
+    width: 380px;
+    min-width: 320px;
+    background: #f5f6f8;
+    border-right: 1px solid #e0e3ea;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+}
+
+.left-panel-inner {
+    padding: 20px 16px 32px;
+}
+
+.app-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e0e3ea;
+}
+
+/* =========================================
+   Scenario Cards
+   ========================================= */
+.scenario-card {
+    background: #ffffff;
+    border: 1px solid #e0e3ea;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.scenario-card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+    background: #fafbfc;
+    border-bottom: 1px solid #e8eaed;
+}
+
+.scenario-card-body {
+    padding: 14px;
+}
+
+.scenario-desc {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.form-label-sm {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 5px;
+}
+
+/* Badge */
+.scenario-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.badge-done  { background: #d1fae5; color: #065f46; }
+.badge-idle  { background: #f3f4f6; color: #9ca3af; }
+.badge-run   { background: #dbeafe; color: #1d4ed8; }
+.badge-error { background: #fee2e2; color: #991b1b; }
+
+/* =========================================
+   Account Selector
+   ========================================= */
+.account-select-row {
+    margin-bottom: 10px;
+}
+
+.account-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1.5px solid #e0e3ea;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #fafbfc;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.account-option.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.account-icon {
+    font-size: 22px;
+    color: #6b7280;
+}
+
+.account-option.selected .account-icon {
+    color: #2563eb;
+}
+
+.account-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.account-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.account-uuid {
+    font-size: 11px;
+    color: #6b7280;
+    font-family: 'Consolas', monospace;
+}
+
+.account-check {
+    font-size: 16px;
+    color: #2563eb;
+}
+
+.selected-uuid-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #f8f9fb;
+    border: 1px solid #e8eaed;
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.label-xs {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.uuid-value {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d4ed8;
+}
+
+/* =========================================
+   Step Rows & Buttons
+   ========================================= */
+.step-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.step-label {
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.btn-step {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-step:hover:not(:disabled) { background: #1d4ed8; }
+.btn-step:disabled { background: #93c5fd; cursor: default; opacity: 0.7; }
+
+.btn-step-outline {
+    background: #fff;
+    color: #2563eb;
+    border: 1px solid #93c5fd;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+.btn-step-outline:hover:not(:disabled) { background: #eff6ff; }
+.btn-step-outline:disabled {
+    color: #9ca3af;
+    border-color: #e0e3ea;
+    cursor: default;
+}
+
+.btn-step-danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-step-danger:hover:not(:disabled) { background: #fef2f2; }
+.btn-step-danger:disabled { color: #9ca3af; border-color: #e0e3ea; cursor: default; }
+
+/* Input with reset button */
+.input-with-reset {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-reset .form-control {
+    padding-right: 28px;
+}
+
+.btn-input-reset {
+    position: absolute;
+    right: 6px;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.btn-input-reset:hover { color: #6b7280; }
+
+/* Step URI label */
+.step-uri {
+    font-size: 10px;
+    color: #9ca3af;
+    font-family: 'Consolas', monospace;
+    margin-top: 2px;
+}
+
+/* Step divider label */
+.step-divider {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 10px 0 6px;
+    padding-top: 8px;
+    border-top: 1px dashed #e8eaed;
+}
+
+/* Status input group */
+.status-input-group {
+    background: #f8f9fb;
+    border: 1px solid #e8eaed;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.status-input-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.status-input-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    min-width: 52px;
+    flex-shrink: 0;
+}
+
+.status-input-field {
+    flex: 1;
+    font-family: 'Consolas', monospace;
+    font-size: 11px !important;
+}
+
+.status-input-hint {
+    font-size: 10px;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+/* QR meta info */
+.qr-meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.qr-meta-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.qr-exp-text {
+    font-size: 11px;
+    color: #dc2626;
+    font-family: 'Consolas', monospace;
+}
+
+/* QR Display */
+.qr-display {
+    background: #f8f9fb;
+    border: 1px solid #e8eaed;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.qr-image-wrap {
+    display: inline-block;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #e0e3ea;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.qr-code-text {
+    font-size: 10px;
+    color: #6b7280;
+    word-break: break-all;
+    font-family: 'Consolas', monospace;
+    margin: 0;
+}
+
+/* =========================================
+   Right Panel — API Log
+   ========================================= */
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.log-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid #e0e3ea;
+    background: #fafbfc;
+    flex-shrink: 0;
+}
+
+.log-panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.log-entry-count {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.btn-log-action {
+    background: none;
+    border: 1px solid #e0e3ea;
+    border-radius: 5px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 3px 7px;
+    font-size: 12px;
+    line-height: 1.4;
+    transition: background 0.12s;
+}
+.btn-log-action:hover { background: #f3f4f6; }
+
+.log-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 18px;
+}
+
+/* =========================================
+   Log Entries
+   ========================================= */
+.log-entry-info {
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.log-meta {
+    color: #9ca3af;
+    margin-right: 6px;
+    font-size: 11px;
+    font-family: 'Consolas', monospace;
+}
+
+.log-text { color: #374151; }
+
+.log-entry-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 14px 0 8px;
+}
+.log-entry-section::before,
+.log-entry-section::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8eaed;
+}
+.log-entry-section.section-req::before,
+.log-entry-section.section-req::after { background: #bfdbfe; }
+.log-entry-section.section-res::before,
+.log-entry-section.section-res::after { background: #bbf7d0; }
+
+.log-entry-kv {
+    display: flex;
+    gap: 0;
+    align-items: baseline;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+.log-kv-key {
+    color: #6b7280;
+    min-width: 180px;
+    flex-shrink: 0;
+    font-size: 11px;
+}
+.log-kv-val {
+    color: #1a1a2e;
+    font-weight: 500;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+.log-kv-val.val-ok  { color: #065f46; font-weight: 700; }
+.log-kv-val.val-err { color: #991b1b; font-weight: 700; }
+
+.log-entry-block {
+    background: #f8f9fb;
+    border: 1px solid #e8eaed;
+    border-left: 3px solid #93c5fd;
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+}
+.log-entry-block.block-res { border-left-color: #6ee7b7; }
+.log-entry-block.block-enc { border-left-color: #c4b5fd; }
+
+.log-block-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    margin-bottom: 4px;
+}
+.log-block-json {
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 11px;
+    color: #374151;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 0;
+}
+.log-block-enc {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: #7c3aed;
+    word-break: break-all;
+    margin: 0;
+}
+
+.log-entry-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 3px solid #ef4444;
+    border-radius: 0 6px 6px 0;
+    padding: 7px 12px;
+    color: #991b1b;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.log-divider {
+    border: none;
+    border-top: 1px dashed #e8eaed;
+    margin: 16px 0;
+}

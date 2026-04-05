@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 테스트 앱</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+    <!-- ========================
+         Left Panel
+         ======================== -->
+    <div class="left-panel">
+        <div class="left-panel-inner">
+
+            <h1 class="app-title">결제 테스트 앱</h1>
+
+            <!-- 패널 전환 토글 -->
+            <div class="toggle-row">
+                <span class="toggle-label label-main is-active" id="labelMain">시나리오 API 테스트</span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="toggleReverse"
+                           role="switch" onchange="toggleReverseMode(this.checked)">
+                </div>
+                <span class="toggle-label label-reverse" id="labelReverse">역거래 API 테스트</span>
+            </div>
+
+            <!-- ========================
+                 순방향 패널 (기본)
+                 ======================== -->
+            <div id="panelMain">
+
+                <!-- 계정 설정 카드 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-person-check me-1"></i>계정 설정
+                        <span class="scenario-badge badge-idle" id="badgeAccount">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <p class="scenario-desc">계정을 선택하고 회원 여부를 확인합니다.</p>
+
+                        <label class="form-label-sm">계정</label>
+                        <div class="account-select-row">
+                            <div class="account-option selected" id="accountOpt_gkwns458"
+                                 onclick="selectAccount('gkwns458', '계정 1')">
+                                <i class="bi bi-person-circle account-icon"></i>
+                                <div class="account-info">
+                                    <span class="account-name">계정 1</span>
+                                    <span class="account-uuid">gkwns458</span>
+                                </div>
+                                <i class="bi bi-check-circle-fill account-check"></i>
+                            </div>
+                            <div class="account-option" id="accountOpt_F5lM32LAiGa0S"
+                                 onclick="selectAccount('F5lM32LAiGa0S+0QoyOGFA==', '계정 2')">
+                                <i class="bi bi-person-circle account-icon"></i>
+                                <div class="account-info">
+                                    <span class="account-name">계정 2</span>
+                                    <span class="account-uuid">F5lM32LAiGa0S+0QoyOGFA==</span>
+                                </div>
+                                <i class="bi bi-check-circle-fill account-check" style="display:none;"></i>
+                            </div>
+                        </div>
+
+                        <div class="selected-uuid-row" id="selectedUuidRow">
+                            <span class="label-xs text-muted">선택된 UUID</span>
+                            <span class="uuid-value" id="selectedUuidDisplay">gkwns458</span>
+                        </div>
+
+                        <div class="step-row mt-2">
+                            <div>
+                                <span class="step-label">회원 여부 조회</span>
+                                <div class="step-uri">POST /bravo/v1/member/check</div>
+                            </div>
+                            <button class="btn btn-step" id="btnCheckMember" onclick="runMemberCheck()">
+                                <i class="bi bi-search me-1"></i>회원 여부 조회
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MPM 결제 테스트 카드 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-qr-code me-1"></i>MPM 결제 테스트
+                        <span class="scenario-badge badge-idle" id="badgeMpm">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <p class="scenario-desc">가맹점 QR 코드를 입력하고 MPM 결제를 진행합니다.</p>
+
+                        <div class="mb-2">
+                            <label class="form-label-sm">가맹점 QR 코드</label>
+                            <div class="input-with-reset">
+                                <input type="text" class="form-control form-control-sm"
+                                       id="mpmQrCode"
+                                       value="1-ZP-202204002576-M202204000001612--2f6f"
+                                       oninput="onMpmQrCodeInput()">
+                                <button class="btn-input-reset" onclick="resetMpmQrCode()" title="초기화">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-sm">결제 금액 (AMT)</label>
+                            <input type="number" class="form-control form-control-sm"
+                                   id="mpmAmt" placeholder="예: 10000" min="1">
+                        </div>
+
+                        <div class="step-row">
+                            <div>
+                                <span class="step-label">1. QR 검증</span>
+                                <div class="step-uri">POST /bravo/v1/pay/qr/verify</div>
+                            </div>
+                            <button class="btn btn-step-outline" id="btnMpmQr" onclick="runMpmQr()" disabled>
+                                1. QR 검증 &nbsp;<i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="step-row">
+                            <div>
+                                <span class="step-label">2. MPM 결제</span>
+                                <div class="step-uri">POST /bravo/v1/pay/mpm</div>
+                            </div>
+                            <button class="btn btn-step-outline" id="btnMpmPay" onclick="runMpmPay()" disabled>
+                                2. MPM 결제 &nbsp;<i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="step-divider">3. 결제 상태 조회</div>
+                        <div class="status-input-group">
+                            <div class="status-input-row">
+                                <label class="status-input-label">UUID</label>
+                                <input type="text" class="form-control form-control-sm status-input-field"
+                                       id="mpmStatusUuid" placeholder="계정 선택 후 자동 입력"
+                                       oninput="onStatusFieldInput()">
+                            </div>
+                            <div class="status-input-row">
+                                <label class="status-input-label">TYPE</label>
+                                <input type="text" class="form-control form-control-sm status-input-field"
+                                       id="mpmStatusType" value="M" placeholder="M 또는 C" maxlength="1"
+                                       oninput="onStatusFieldInput()">
+                                <span class="status-input-hint">M = MPM</span>
+                            </div>
+                            <div class="status-input-row">
+                                <label class="status-input-label">ORG_TNO</label>
+                                <input type="text" class="form-control form-control-sm status-input-field"
+                                       id="mpmStatusOrgTno" placeholder="MPM 결제 후 자동 입력"
+                                       oninput="onStatusFieldInput()">
+                            </div>
+                            <div class="step-uri mb-1">POST /bravo/v1/pay/status</div>
+                            <button class="btn btn-step-outline w-100 mt-1" id="btnMpmStatus"
+                                    onclick="runMpmStatus()" disabled>
+                                결제 상태 조회 &nbsp;<i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CPM 결제 테스트 카드 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-upc-scan me-1"></i>CPM 결제 테스트
+                        <span class="scenario-badge badge-idle" id="badgeCpm">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <p class="scenario-desc">CPM QR 코드를 생성하고 가맹점 단말로 스캔합니다.</p>
+
+                        <div class="step-row mb-2">
+                            <div>
+                                <span class="step-label">1. QR 코드 생성</span>
+                                <div class="step-uri">POST /bravo/v1/pay/qr/create</div>
+                            </div>
+                            <button class="btn btn-step" id="btnCpmQr" onclick="runCpmQr()" disabled>
+                                <i class="bi bi-qr-code-scan me-1"></i>QR 생성
+                            </button>
+                        </div>
+
+                        <div class="qr-display" id="qrDisplay" style="display:none;">
+                            <div class="qr-image-wrap">
+                                <div id="qrImageWrap"></div>
+                            </div>
+                            <div class="qr-meta-row">
+                                <span class="qr-meta-label">QR_CODE</span>
+                                <span class="qr-code-text" id="qrCodeText"></span>
+                            </div>
+                            <div class="qr-meta-row">
+                                <span class="qr-meta-label">EXP_TIME</span>
+                                <span class="qr-exp-text" id="qrExpTime"></span>
+                            </div>
+                        </div>
+
+                        <div class="step-row mt-2">
+                            <div>
+                                <span class="step-label">2. 결제 상태 조회</span>
+                                <div class="step-uri">POST /bravo/v1/pay/status</div>
+                            </div>
+                            <button class="btn btn-step-outline" id="btnCpmStatus"
+                                    onclick="runCpmStatus()" disabled>
+                                <i class="bi bi-arrow-repeat me-1"></i>상태 조회
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 정산 대사 카드 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-table me-1"></i>정산 대사
+                        <span class="scenario-badge badge-idle" id="badgeSettle">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <p class="scenario-desc">결제 집계 내역을 조회합니다.</p>
+
+                        <div class="mb-2">
+                            <label class="form-label-sm">시작일</label>
+                            <input type="date" class="form-control form-control-sm" id="strDate">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-sm">종료일</label>
+                            <input type="date" class="form-control form-control-sm" id="endDate">
+                        </div>
+
+                        <div class="step-row">
+                            <div>
+                                <span class="step-label">집계 조회</span>
+                                <div class="step-uri">POST /bravo/v1/settle/summary</div>
+                            </div>
+                            <button class="btn btn-step-outline" id="btnSettleSummary" onclick="runSettleSummary()">
+                                집계 조회 &nbsp;<i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- end panelMain -->
+
+            <!-- ========================
+                 역거래 패널 (토글)
+                 ======================== -->
+            <div id="panelReverse" style="display:none;">
+
+                <p class="reverse-panel-desc">
+                    <i class="bi bi-arrow-left-right me-1"></i>
+                    <strong>비플페이 → 이용기관</strong> 방향의 API를 시뮬레이션합니다.<br>
+                    입력값을 채운 후 각 버튼을 눌러 수신 처리 결과를 확인합니다.
+                </p>
+
+                <!-- 환불결과 통지 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-arrow-return-left me-1"></i>환불결과 통지
+                        <span class="scenario-badge badge-idle" id="badgeRefundNoti">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <div class="step-uri mb-2">POST /api/bpy/v1/refund/noti</div>
+                        <div class="reverse-input-group">
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UUID</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_uuid">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRGT_TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_trgtTrxDt"
+                                       placeholder="YYYYMMDD">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRGT_TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_trgtTrxSeq">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_orgTrxDt"
+                                       placeholder="YYYYMMDD">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_orgTrxSeq">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AMT</label>
+                                <input type="text" class="form-control form-control-sm" id="r1_amt"
+                                       placeholder="금액">
+                            </div>
+                        </div>
+                        <button class="btn btn-step w-100" onclick="runRefundNoti()">
+                            <i class="bi bi-send me-1"></i>환불결과 통지 처리
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 포인트 거래결과 조회 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-search me-1"></i>포인트 거래결과 조회
+                        <span class="scenario-badge badge-idle" id="badgeTranResult">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <div class="step-uri mb-2">POST /api/bpy/v1/tran/result</div>
+                        <div class="reverse-input-group">
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UUID</label>
+                                <input type="text" class="form-control form-control-sm" id="r2_uuid">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TYPE</label>
+                                <select class="form-select form-select-sm" id="r2_type">
+                                    <option value="1">1 = 차감</option>
+                                    <option value="2">2 = 환불</option>
+                                    <option value="3">3 = 차감망취소 (미사용)</option>
+                                    <option value="4">4 = 환불망취소 (미사용)</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRGT_TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r2_trgtTrxDt"
+                                       placeholder="YYYYMMDD">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRGT_TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r2_trgtTrxSeq">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r2_orgTrxDt"
+                                       placeholder="YYYYMMDD (환불/망취소 시 필수)">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r2_orgTrxSeq">
+                            </div>
+                        </div>
+                        <button class="btn btn-step w-100" onclick="runTranResult()">
+                            <i class="bi bi-send me-1"></i>거래결과 조회 처리
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 포인트 차감/환불/망취소 요청 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-coin me-1"></i>포인트 차감/환불/망취소 요청
+                        <span class="scenario-badge badge-idle" id="badgePayRequest">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <div class="step-uri mb-2">POST /api/bpy/v1/pay/request</div>
+                        <div class="reverse-input-group">
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UUID</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_uuid">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TYPE</label>
+                                <select class="form-select form-select-sm" id="r3_type">
+                                    <option value="1">1 = 차감 (MPM)</option>
+                                    <option value="2">2 = 차감 (CPM)</option>
+                                    <option value="3">3 = 환불</option>
+                                    <option value="4">4 = 차감망취소</option>
+                                    <option value="5">5 = 환불망취소</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_trxDt"
+                                       placeholder="YYYYMMDD">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_trxSeq">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AMT</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_amt"
+                                       placeholder="금액">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AFLT_ID</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_afltId">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AFLT_NM</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_afltNm">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">MPM_TNO</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_mpmTno"
+                                       placeholder="TYPE=1 (MPM 차감) 시만">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_orgTrxDt"
+                                       placeholder="환불/망취소 시 필수">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r3_orgTrxSeq">
+                            </div>
+                        </div>
+                        <button class="btn btn-step w-100" onclick="runPayRequest()">
+                            <i class="bi bi-send me-1"></i>포인트 요청 처리
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CPM 결제완료 통지 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-check2-circle me-1"></i>CPM 결제완료 통지
+                        <span class="scenario-badge badge-idle" id="badgeCpmComplete">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <div class="step-uri mb-2">POST /api/bpy/v1/cpm/complete</div>
+                        <div class="reverse-input-group">
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UUID</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_uuid">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ORG_TNO</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_orgTno"
+                                       placeholder="QR 생성 API COMM.TNO">
+                            </div>
+
+                            <div class="reverse-sub-divider">PAY_INFO</div>
+
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRX_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piTrxDt"
+                                       placeholder="YYYYMMDD">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRX_TM</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piTrxTm"
+                                       placeholder="HHmmss">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TRX_SEQ</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piTrxSeq">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">PROC_ST</label>
+                                <select class="form-select form-select-sm" id="r4_piProcSt">
+                                    <option value="070001">070001 = 정상</option>
+                                    <option value="070002">070002 = 불능</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AFLT_ID</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piAfltId">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AFLT_NM</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piAfltNm">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">AMT</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piAmt">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">SUPY_AMT</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piSupyAmt"
+                                       value="0">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">VAT</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piVat"
+                                       value="0">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">SVC_AMT</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piSvcAmt"
+                                       value="0">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">BIZ_NO</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piBizNo">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UPJONG_NM</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piUpjongNm">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">REPR_NM</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piReprNm">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TEL_NO</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piTelNo">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ADDR</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piAddr">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">ADDR_DTL</label>
+                                <input type="text" class="form-control form-control-sm" id="r4_piAddrDtl">
+                            </div>
+                        </div>
+                        <button class="btn btn-step w-100" onclick="runCpmComplete()">
+                            <i class="bi bi-send me-1"></i>CPM 결제완료 통지 처리
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- end panelReverse -->
+
+        </div>
+    </div><!-- end left-panel -->
+
+    <!-- ========================
+         Right Panel: API Log
+         ======================== -->
+    <div class="right-panel">
+        <div class="log-panel-header">
+            <span class="log-panel-title"><i class="bi bi-journal-text me-1"></i>API 로그</span>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="log-entry-count" id="logCount">0 건</span>
+                <button class="btn-log-action" onclick="clearLog()" title="로그 초기화"><i class="bi bi-trash"></i></button>
+                <button class="btn-log-action" onclick="copyLog()" title="로그 복사"><i class="bi bi-clipboard"></i></button>
+            </div>
+        </div>
+        <div class="log-panel-body" id="logPanel">
+            <div class="log-entry-info">
+                <span class="log-meta">[ready]</span>
+                <span class="log-text">앱이 시작되었습니다. 계정을 선택하여 시작하세요.</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
