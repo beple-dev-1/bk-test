@@ -20,8 +20,15 @@ import java.util.Random;
 
 /**
  * 역거래 API 테스트 프록시 — UI에서 호출
- * COMM + DETAIL 생성 → 암호화 → https://dev-gift.appply.co.kr 실제 HTTP POST
+ * COMM + DETAIL 생성 → 암호화 → GATEWAY_040 경유 → 역거래 실제 HTTP POST
  * → 응답 복호화 → BpayCallResult 반환
+ *
+ * 게이트웨이 호출 형식:
+ *   POST https://dev-biz-zero.bizplay.co.kr/GATEWAY_040.act
+ *   { "URL": "https://dev-gift.appply.co.kr/{path}", "METHOD": "POST", "PARAMETER": "<DATA>" }
+ *
+ * 게이트웨이 응답 형식:
+ *   { "RES_CD": "...", "RES_MSG": "...", "BODY": { "DATA": "..." } }
  */
 @Slf4j
 @RestController
@@ -29,8 +36,9 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class TestReverseApiController {
 
-    private static final String APP_CD = "B_JBK";
-    private static final String ORG_ID = "PBP2511000011";
+    private static final String APP_CD      = "B_JBK";
+    private static final String ORG_ID      = "PBP2511000011";
+    private static final String GATEWAY_URL = "https://dev-biz-zero.bizplay.co.kr/TEST_GATEWAY_040.jct";
 
     private final CryptoProperties cryptoProperties;
     private final ObjectMapper     objectMapper;
@@ -154,7 +162,7 @@ public class TestReverseApiController {
     private <REQ, RES> BpayCallResult<RES> call(
             String apiName, String path, REQ detail, Class<RES> responseDetailClass) {
 
-        String url = reverseBaseUrl + path;
+        String targetUrl         = reverseBaseUrl + path;  // GATEWAY 요청부 URL 필드
         String requestPlainJson      = null;
         String requestEncryptedData  = null;
         String responseEncryptedData = null;
@@ -174,29 +182,40 @@ public class TestReverseApiController {
             BpayApiRequest<REQ> request = BpayApiRequest.<REQ>builder()
                     .comm(comm).detail(detail).build();
 
-            requestPlainJson    = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            String compact      = objectMapper.writeValueAsString(request);
+            requestPlainJson     = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+            String compact       = objectMapper.writeValueAsString(request);
             requestEncryptedData = CryptoUtils.encrypt(compact, key);
             log.info("[TestReverse] {} | REQ plain: {}", apiName, requestPlainJson);
             log.info("[TestReverse] {} | REQ encrypted: {}", apiName, requestEncryptedData);
 
-            // 3. { "DATA": "암호화값" } HTTP POST
-            String requestBodyJson = objectMapper.writeValueAsString(new DataEnvelope(requestEncryptedData));
+            // 3. GATEWAY_040 HTTP POST
+            //    { "URL": targetUrl, "METHOD": "POST", "PARAMETER": "<암호화값>" }
+            String requestBodyJson = objectMapper.writeValueAsString(
+                    new GatewayRequest(targetUrl, "POST", new DataEnvelope(requestEncryptedData)));
+            log.info("[TestReverse] {} | GATEWAY REQ body: {}", apiName, requestBodyJson);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = new HttpEntity<>(requestBodyJson, headers);
 
             ResponseEntity<String> httpResponse = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, String.class);
+                    GATEWAY_URL, HttpMethod.POST, entity, String.class);
 
             String responseBodyJson = httpResponse.getBody();
             if (responseBodyJson == null || responseBodyJson.isBlank()) {
                 throw new IllegalStateException("Empty HTTP response body");
             }
+            log.info("[TestReverse] {} | GATEWAY RES body: {}", apiName, responseBodyJson);
 
-            // 4. 응답 DATA 추출 → 복호화
-            DataEnvelope responseEnvelope = objectMapper.readValue(responseBodyJson, DataEnvelope.class);
-            responseEncryptedData = responseEnvelope.getData();
+            // 4. 게이트웨이 응답 파싱 → BODY.DATA 추출 → 복호화
+            //    { "RES_CD": "...", "RES_MSG": "...", "BODY": { "DATA": "..." } }
+            GatewayResponse gatewayResponse = objectMapper.readValue(responseBodyJson, GatewayResponse.class);
+            if (gatewayResponse.getBody() == null || gatewayResponse.getBody().getData() == null) {
+                throw new IllegalStateException(
+                        "Gateway BODY.DATA is null — RES_CD=" + gatewayResponse.getResCd()
+                        + ", RES_MSG=" + gatewayResponse.getResMsg());
+            }
+            responseEncryptedData = gatewayResponse.getBody().getData();
             log.info("[TestReverse] {} | RES encrypted: {}", apiName, responseEncryptedData);
 
             responsePlainJson = CryptoUtils.decrypt(responseEncryptedData, key);
@@ -209,7 +228,7 @@ public class TestReverseApiController {
             CommResponse respComm = apiResponse.getComm();
 
             return BpayCallResult.<RES>builder()
-                    .apiName(apiName).url(url)
+                    .apiName(apiName).url(GATEWAY_URL)
                     .requestPlainJson(requestPlainJson)
                     .requestEncryptedData(requestEncryptedData)
                     .responseEncryptedData(responseEncryptedData)
@@ -222,7 +241,7 @@ public class TestReverseApiController {
         } catch (Exception e) {
             log.error("[TestReverse] {} failed: {}", apiName, e.getMessage(), e);
             return BpayCallResult.<RES>builder()
-                    .apiName(apiName).url(url)
+                    .apiName(apiName).url(GATEWAY_URL)
                     .requestPlainJson(requestPlainJson)
                     .requestEncryptedData(requestEncryptedData)
                     .responseEncryptedData(responseEncryptedData)
