@@ -101,6 +101,65 @@ encryptKey=***                                              + ENCRYPT_KEY (Varia
 
 ---
 
+### 3. 역거래 API — TEST_GATEWAY_040 경유 호출 방식으로 변경 (커밋: `29a1b15`)
+
+#### 변경 배경
+역거래 API(9~12번)는 비플페이 서버가 이용기관 서버를 직접 호출하는 구조로, 테스트 앱에서
+직접 `dev-gift.appply.co.kr`를 호출하는 대신 `dev-biz-zero.bizplay.co.kr`의
+**TEST_GATEWAY_040.jct** 게이트웨이를 경유하도록 변경.
+
+#### 호출 구조
+
+```
+TestReverseApiController
+    │
+    ▼
+POST https://dev-biz-zero.bizplay.co.kr/TEST_GATEWAY_040.jct
+    {
+      "URL": "https://dev-gift.appplay.co.kr:443/api/bpy/v1/{path}",
+      "METHOD": "POST",
+      "PARAMETER": { "DATA": "AES-GCM 암호화값" }
+    }
+    │
+    ▼ (게이트웨이 내부에서 dev-gift 호출)
+    응답: { "RES_CD": "...", "RES_MSG": "...", "STATUS_CODE": ..., "STATUS_MESSAGE": "...", "BODY": { "DATA": "..." } }
+    │
+    ▼
+BODY.DATA 추출 → AES-GCM 복호화 → BpayCallResult 반환
+```
+
+#### 추가/수정 파일
+
+| 파일 | 변경 내용 |
+|------|---------|
+| `dto/common/GatewayRequest.java` | 게이트웨이 요청 DTO — `URL`, `METHOD`, `PARAMETER(DataEnvelope)` |
+| `dto/common/GatewayResponse.java` | 게이트웨이 응답 DTO — `RES_CD`, `RES_MSG`, `STATUS_CODE`, `STATUS_MESSAGE`, `BODY(DataEnvelope)` |
+| `controller/api/TestReverseApiController.java` | 목적지를 `GATEWAY_URL` 상수로 하드코딩, 요청/응답 형식 변경 |
+| `config/AppConfig.java` | `RestTemplate`을 Apache HttpClient 5 기반으로 교체 |
+| `build.gradle.kts` | `httpclient5` 의존성 추가 |
+| `application.yml` | `reverse-base-url` → `https://dev-gift.appplay.co.kr:443` |
+
+#### RestTemplate 변경 사유
+기본 `HttpURLConnection`(`SimpleClientHttpRequestFactory`) 사용 시 `Connection reset` 발생.
+Apache HttpClient 5(`HttpComponentsClientHttpRequestFactory`)로 교체하여 해결.
+타임아웃: connect/connectionRequest 10초, response 30초.
+
+#### 주요 상수 (TestReverseApiController)
+```java
+private static final String GATEWAY_URL = "https://dev-biz-zero.bizplay.co.kr/TEST_GATEWAY_040.jct";
+```
+`reverseBaseUrl`(`application.yml` `bpay.reverse-base-url`)은 `PARAMETER.URL` 필드 값으로 사용.
+
+#### 트러블슈팅 이력
+
+| 증상 | 원인 | 해결 |
+|------|------|------|
+| `Connection reset` | `HttpURLConnection`의 `Expect: 100-continue` 헤더 미지원 | Apache HttpClient 5로 교체 |
+| `Read timed out` | 게이트웨이 서버 IP(`172.20.131.11`) 방화벽 — WAS 로그 미도달 | 게이트웨이 URL을 `dev-biz-zero.bizplay.co.kr`로 변경 |
+| `UnknownHostException: dev-gift.appply.co.kr` | `dev-biz-zero` 서버 hosts 파일에 `appplay`(오타) 로 등록되어 있어 `appply`(실제) 불일치 | hosts 파일 수정 + `application.yml` URL을 `appplay`로 맞춤 |
+
+---
+
 ## 미구현 / 제외 항목
 
 | 항목 | 사유 |

@@ -36,6 +36,73 @@
                  ======================== -->
             <div id="panelMain">
 
+                <!-- 회원가입 및 수정 카드 -->
+                <div class="scenario-card">
+                    <div class="scenario-card-header">
+                        <i class="bi bi-person-plus me-1"></i>회원가입 및 수정
+                        <span class="scenario-badge badge-idle" id="badgeMemberJoin">대기</span>
+                    </div>
+                    <div class="scenario-card-body">
+                        <div class="step-uri mb-2">POST /bravo/v1/member/join</div>
+
+                        <div class="reverse-input-group">
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">UUID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="join_uuid"
+                                       placeholder="유저식별고유ID">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">TYPE <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm" id="join_type">
+                                    <option value="R">R = 신규가입</option>
+                                    <option value="U">U = 정보업데이트</option>
+                                    <option value="E">E = 해지</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">MOB_NO</label>
+                                <input type="text" class="form-control form-control-sm" id="join_mobNo"
+                                       placeholder="01012345678">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">MEMB_NM</label>
+                                <input type="text" class="form-control form-control-sm" id="join_membNm"
+                                       placeholder="이름">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">BRT_DT</label>
+                                <input type="text" class="form-control form-control-sm" id="join_brtDt"
+                                       placeholder="19801231">
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">GNDR</label>
+                                <select class="form-select form-select-sm" id="join_gndr">
+                                    <option value="">선택 안 함</option>
+                                    <option value="1">1 = 남성</option>
+                                    <option value="0">0 = 여성</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">IN_FRN_TP</label>
+                                <select class="form-select form-select-sm" id="join_inFrnTp">
+                                    <option value="">선택 안 함</option>
+                                    <option value="1">1 = 내국인</option>
+                                    <option value="2">2 = 외국인</option>
+                                </select>
+                            </div>
+                            <div class="reverse-input-row">
+                                <label class="reverse-input-label">CI</label>
+                                <input type="text" class="form-control form-control-sm" id="join_ci"
+                                       placeholder="사용자 CI (88자)">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-step w-100 mt-1" onclick="runMemberJoin()">
+                            <i class="bi bi-person-plus me-1"></i>회원가입 요청
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 계정 설정 카드 -->
                 <div class="scenario-card">
                     <div class="scenario-card-header">

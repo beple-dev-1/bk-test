@@ -162,6 +162,68 @@ function selectAccount(uuid, name) {
 }
 
 /* =========================================
+   Member Join
+   ========================================= */
+async function runMemberJoin() {
+    const uuid    = document.getElementById('join_uuid').value.trim();
+    const type    = document.getElementById('join_type').value;
+
+    if (!uuid) { appendError('UUID를 입력하세요.'); return; }
+    if (!type) { appendError('TYPE을 선택하세요.'); return; }
+
+    setBadge('badgeMemberJoin', '요청 중...', 'run');
+    appendDivider();
+    appendInfo(`회원가입 요청 — UUID: ${uuid}, TYPE: ${type}`);
+
+    const payload = {
+        uuid,
+        type,
+        mobNo:   document.getElementById('join_mobNo').value.trim()   || null,
+        membNm:  document.getElementById('join_membNm').value.trim()  || null,
+        brtDt:   document.getElementById('join_brtDt').value.trim()   || null,
+        gndr:    document.getElementById('join_gndr').value           || null,
+        inFrnTp: document.getElementById('join_inFrnTp').value        || null,
+        ci:      document.getElementById('join_ci').value.trim()      || null,
+    };
+
+    try {
+        const response = await callApi('POST', '/api/account/join', payload);
+        const result = response.data;
+
+        appendSection('Request  ·  POST /bravo/v1/member/join', 'section-req');
+        appendKV('API:', result.apiName);
+        appendKV('URL:', result.url);
+        appendJson('Plain JSON', result.requestPlainJson, 'req');
+        appendEncrypted('Encrypted DATA', result.requestEncryptedData);
+
+        appendSection('Response', 'section-res');
+        appendEncrypted('Encrypted DATA (received)', result.responseEncryptedData);
+        appendJson('Decrypted JSON', result.responsePlainJson, 'res');
+
+        appendSection('Summary');
+        appendKV('RC:', result.rc, result.rc === '0000' ? 'val-ok' : 'val-err');
+        appendKV('RM:', result.rm);
+        appendKV('TNO:', result.tno);
+        appendKV('RES_DTTM:', result.resDttm);
+        if (result.detail) {
+            appendKV('JOIN_YN:', result.detail.JOIN_YN,
+                result.detail.JOIN_YN === 'Y' ? 'val-ok' : 'val-err');
+        }
+        maybeLogErrorDetail(result);
+
+        setBadge('badgeMemberJoin', result.rc === '0000' ? '완료' : '실패',
+                 result.rc === '0000' ? 'done' : 'error');
+
+        if (result.rc !== '0000') {
+            appendError(`회원가입 실패 — RC: ${result.rc}, RM: ${result.rm}`);
+        }
+    } catch (e) {
+        setBadge('badgeMemberJoin', '오류', 'error');
+        appendError(`Request error: ${e.message}`);
+    }
+}
+
+/* =========================================
    Step 3: Member Check
    ========================================= */
 async function runMemberCheck() {
