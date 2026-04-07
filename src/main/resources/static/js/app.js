@@ -133,7 +133,8 @@ async function callApi(method, url, payload) {
 // 계정 ID → DOM id 매핑 (특수문자 포함 UUID 대응)
 const accountOptionIds = {
     'gkwns458':              'accountOpt_gkwns458',
-    'F5lM32LAiGa0S+0QoyOGFA==': 'accountOpt_F5lM32LAiGa0S'
+    'F5lM32LAiGa0S+0QoyOGFA==': 'accountOpt_F5lM32LAiGa0S',
+    '1W5PtXMj9lcOrf0X2jaHog==': 'accountOpt_1W5PtXMj9lcOrf0X'
 };
 
 function selectAccount(uuid, name) {
