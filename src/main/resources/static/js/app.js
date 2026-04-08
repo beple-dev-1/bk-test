@@ -134,7 +134,8 @@ async function callApi(method, url, payload) {
 const accountOptionIds = {
     'gkwns458':              'accountOpt_gkwns458',
     'F5lM32LAiGa0S+0QoyOGFA==': 'accountOpt_F5lM32LAiGa0S',
-    '1W5PtXMj9lcOrf0X2jaHog==': 'accountOpt_1W5PtXMj9lcOrf0X'
+    '1W5PtXMj9lcOrf0X2jaHog==': 'accountOpt_1W5PtXMj9lcOrf0X',
+    'PH1tkIDnuY0cOThA1HurYA==': 'accountOpt_PH1tkIDnuY0cOThA'
 };
 
 function selectAccount(uuid, name) {
