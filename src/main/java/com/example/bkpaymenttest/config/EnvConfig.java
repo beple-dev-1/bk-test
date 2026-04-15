@@ -6,9 +6,7 @@ import org.springframework.stereotype.Component;
 /**
  * 런타임 환경(개발/운영) 상태 관리.
  * UI 토글에 의해 setProd()가 호출되면 이후 모든 API 호출에 즉시 반영된다.
- *
- * 초기값: 환경변수 DEFAULT_ENV=prod 로 설정하면 앱 시작 시 운영으로 기동.
- * 미설정 시 기본값은 개발(dev).
+ * 앱 시작 시 항상 개발(dev)로 초기화된다.
  */
 @Component
 public class EnvConfig {
@@ -25,11 +23,7 @@ public class EnvConfig {
     @Value("${bpay.prod.reverse-base-url}")
     private String prodReverseBaseUrl;
 
-    private volatile boolean prod;
-
-    public EnvConfig(@Value("${DEFAULT_ENV:dev}") String defaultEnv) {
-        this.prod = "prod".equalsIgnoreCase(defaultEnv);
-    }
+    private volatile boolean prod = false;
 
     public boolean isProd() { return prod; }
 
