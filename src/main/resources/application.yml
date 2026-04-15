@@ -8,6 +8,13 @@ spring:
   devtools:
     restart:
       enabled: true
+  web:
+    resources:
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
 
 server:
   port: ${PORT:8080}
