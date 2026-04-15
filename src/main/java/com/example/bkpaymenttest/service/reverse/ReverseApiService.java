@@ -42,10 +42,12 @@ public class ReverseApiService {
     public PayRequestDetailResponse processPayRequest(PayRequestDetailRequest req) {
         log.info("[ReverseApiService] payRequest uuid={}, type={}, amt={}, afltId={}",
                 req.getUuid(), req.getType(), req.getAmt(), req.getAfltId());
+        Long amt = null;
+        try { amt = Long.parseLong(req.getAmt()); } catch (Exception ignored) {}
         return PayRequestDetailResponse.builder()
                 .resCd("0000")
                 .resMsg("정상")
-                .amt(req.getAmt())
+                .amt(amt)
                 .build();
     }
 

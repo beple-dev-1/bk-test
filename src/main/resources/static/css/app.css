@@ -125,13 +125,55 @@ html, body {
     padding: 20px 16px 32px;
 }
 
+.app-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e0e3ea;
+}
+
 .app-title {
     font-size: 17px;
     font-weight: 700;
     color: #1a1a2e;
-    margin: 0 0 18px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid #e0e3ea;
+    margin: 0;
+}
+
+.env-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f0f4ff;
+    border: 1px solid #c7d7f0;
+    border-radius: 20px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+}
+
+.env-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+.env-label-active {
+    color: #1d4ed8;
+}
+
+/* 운영 환경 활성 시 빨간 강조 */
+#envLabelProd.env-label-active {
+    color: #dc2626;
+}
+
+.env-switch {
+    cursor: pointer;
+    width: 2em;
+    height: 1.1em;
+    margin: 0;
 }
 
 /* =========================================

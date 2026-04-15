@@ -12,8 +12,11 @@ spring:
 server:
   port: ${PORT:8080}
 
-# 비플페이 API (이용기관 → 비플페이)
+# 비플페이 API URL — 개발/운영 분리
 bpay:
-  base-url: https://dev-biz-zero.bizplay.co.kr
-  # 역거래 API (비플페이 → 이용기관) 목적지
-  reverse-base-url: https://dev-gift.appplay.co.kr:443
+  dev:
+    base-url: https://dev-biz-zero.bizplay.co.kr
+    reverse-base-url: https://dev-gift.appplay.co.kr:443
+  prod:
+    base-url: https://zero.appplay.co.kr
+    reverse-base-url: https://gift.appply.co.kr:443

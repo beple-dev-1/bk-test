@@ -19,7 +19,17 @@
     <div class="left-panel">
         <div class="left-panel-inner">
 
-            <h1 class="app-title">결제 테스트 앱</h1>
+            <div class="app-title-row">
+                <h1 class="app-title">결제 테스트 앱</h1>
+                <div class="env-toggle-wrap">
+                    <span class="env-label env-label-active" id="envLabelDev">개발</span>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input env-switch" type="checkbox" id="toggleEnv"
+                               role="switch" onchange="switchEnv(this.checked)">
+                    </div>
+                    <span class="env-label" id="envLabelProd">운영</span>
+                </div>
+            </div>
 
             <!-- 패널 전환 토글 -->
             <div class="toggle-row">

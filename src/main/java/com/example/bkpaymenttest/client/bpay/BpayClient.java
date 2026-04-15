@@ -2,11 +2,11 @@ package com.example.bkpaymenttest.client.bpay;
 
 import com.example.bkpaymenttest.common.crypto.CryptoUtils;
 import com.example.bkpaymenttest.config.CryptoProperties;
+import com.example.bkpaymenttest.config.EnvConfig;
 import com.example.bkpaymenttest.dto.common.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -26,11 +26,9 @@ public class BpayClient {
     private static final String REQ_ORIGIN = "J";
 
     private final CryptoProperties cryptoProperties;
+    private final EnvConfig envConfig;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
-
-    @Value("${bpay.base-url}")
-    private String baseUrl;
 
     /**
      * 비플페이 API 공통 호출
@@ -40,7 +38,7 @@ public class BpayClient {
      */
     public <REQ, RES> BpayCallResult<RES> call(String apiName, String path,
                                                 REQ detail, Class<RES> responseDetailClass) {
-        String url = baseUrl + path;
+        String url = envConfig.getBaseUrl() + path;
         String requestPlainJson = null;
         String requestEncryptedData = null;
         String responseEncryptedData = null;

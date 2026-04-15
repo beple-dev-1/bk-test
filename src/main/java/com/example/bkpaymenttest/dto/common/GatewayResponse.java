@@ -8,8 +8,9 @@ import lombok.Setter;
 
 /**
  * GATEWAY_040 응답 바디
- * { "RES_CD": "...", "RES_MSG": "...", "BODY": { "DATA": "..." } }
- * BODY 안에 역거래 API 응답부 값(DataEnvelope)이 그대로 포함됨
+ * { "RES_CD": "...", "RES_MSG": "...", "BODY": "{\"DATA\":\"...\"}" }
+ * BODY 필드는 DataEnvelope JSON이 문자열로 인코딩되어 전달됨
+ * → 수신 후 한 번 더 objectMapper.readValue() 하여 DataEnvelope를 얻는다
  */
 @Getter
 @Setter
@@ -23,8 +24,9 @@ public class GatewayResponse {
     @JsonProperty("RES_MSG")
     private String resMsg;
 
+    /** JSON-encoded string: "{\"DATA\":\"<base64>\"}" */
     @JsonProperty("BODY")
-    private DataEnvelope body;
+    private String body;
 
     @JsonProperty("STATUS_CODE")
     private Integer statusCode;

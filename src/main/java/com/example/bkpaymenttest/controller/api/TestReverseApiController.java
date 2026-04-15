@@ -2,12 +2,12 @@ package com.example.bkpaymenttest.controller.api;
 
 import com.example.bkpaymenttest.common.crypto.CryptoUtils;
 import com.example.bkpaymenttest.config.CryptoProperties;
+import com.example.bkpaymenttest.config.EnvConfig;
 import com.example.bkpaymenttest.dto.common.*;
 import com.example.bkpaymenttest.dto.reverse.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -36,16 +36,13 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class TestReverseApiController {
 
-    private static final String APP_CD      = "B_JBK";
-    private static final String ORG_ID      = "PBP2511000011";
-    private static final String GATEWAY_URL = "https://dev-biz-zero.bizplay.co.kr/TEST_GATEWAY_040.jct";
+    private static final String APP_CD = "B_JBK";
+    private static final String ORG_ID = "PBP2511000011";
 
     private final CryptoProperties cryptoProperties;
+    private final EnvConfig        envConfig;
     private final ObjectMapper     objectMapper;
     private final RestTemplate     restTemplate;
-
-    @Value("${bpay.reverse-base-url}")
-    private String reverseBaseUrl;
 
     // ---------------------------------------------------------------
     // 1. 환불결과 통지
@@ -162,7 +159,7 @@ public class TestReverseApiController {
     private <REQ, RES> BpayCallResult<RES> call(
             String apiName, String path, REQ detail, Class<RES> responseDetailClass) {
 
-        String targetUrl         = reverseBaseUrl + path;  // GATEWAY 요청부 URL 필드
+        String targetUrl         = envConfig.getReverseBaseUrl() + path;  // GATEWAY 요청부 URL 필드
         String requestPlainJson      = null;
         String requestEncryptedData  = null;
         String responseEncryptedData = null;
@@ -198,8 +195,9 @@ public class TestReverseApiController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = new HttpEntity<>(requestBodyJson, headers);
 
+            String gatewayUrl = envConfig.getGatewayUrl();
             ResponseEntity<String> httpResponse = restTemplate.exchange(
-                    GATEWAY_URL, HttpMethod.POST, entity, String.class);
+                    gatewayUrl, HttpMethod.POST, entity, String.class);
 
             String responseBodyJson = httpResponse.getBody();
             if (responseBodyJson == null || responseBodyJson.isBlank()) {
@@ -207,15 +205,22 @@ public class TestReverseApiController {
             }
             log.info("[TestReverse] {} | GATEWAY RES body: {}", apiName, responseBodyJson);
 
-            // 4. 게이트웨이 응답 파싱 → BODY.DATA 추출 → 복호화
-            //    { "RES_CD": "...", "RES_MSG": "...", "BODY": { "DATA": "..." } }
+            // 4. 게이트웨이 응답 파싱 → BODY(JSON 문자열) → DataEnvelope → DATA 추출 → 복호화
+            //    { "RES_CD": "...", "RES_MSG": "...", "BODY": "{\"DATA\":\"...\"}" }
+            //    BODY 필드는 DataEnvelope JSON이 문자열로 인코딩되어 전달되므로 한 번 더 역직렬화
             GatewayResponse gatewayResponse = objectMapper.readValue(responseBodyJson, GatewayResponse.class);
-            if (gatewayResponse.getBody() == null || gatewayResponse.getBody().getData() == null) {
+            if (gatewayResponse.getBody() == null) {
+                throw new IllegalStateException(
+                        "Gateway BODY is null — RES_CD=" + gatewayResponse.getResCd()
+                        + ", RES_MSG=" + gatewayResponse.getResMsg());
+            }
+            DataEnvelope bodyEnvelope = objectMapper.readValue(gatewayResponse.getBody(), DataEnvelope.class);
+            if (bodyEnvelope.getData() == null) {
                 throw new IllegalStateException(
                         "Gateway BODY.DATA is null — RES_CD=" + gatewayResponse.getResCd()
                         + ", RES_MSG=" + gatewayResponse.getResMsg());
             }
-            responseEncryptedData = gatewayResponse.getBody().getData();
+            responseEncryptedData = bodyEnvelope.getData();
             log.info("[TestReverse] {} | RES encrypted: {}", apiName, responseEncryptedData);
 
             responsePlainJson = CryptoUtils.decrypt(responseEncryptedData, key);
@@ -228,7 +233,7 @@ public class TestReverseApiController {
             CommResponse respComm = apiResponse.getComm();
 
             return BpayCallResult.<RES>builder()
-                    .apiName(apiName).url(GATEWAY_URL)
+                    .apiName(apiName).url(gatewayUrl)
                     .requestPlainJson(requestPlainJson)
                     .requestEncryptedData(requestEncryptedData)
                     .responseEncryptedData(responseEncryptedData)
@@ -241,7 +246,7 @@ public class TestReverseApiController {
         } catch (Exception e) {
             log.error("[TestReverse] {} failed: {}", apiName, e.getMessage(), e);
             return BpayCallResult.<RES>builder()
-                    .apiName(apiName).url(GATEWAY_URL)
+                    .apiName(apiName).url(envConfig.getGatewayUrl())
                     .requestPlainJson(requestPlainJson)
                     .requestEncryptedData(requestEncryptedData)
                     .responseEncryptedData(responseEncryptedData)

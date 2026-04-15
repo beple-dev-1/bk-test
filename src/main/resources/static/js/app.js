@@ -1101,6 +1101,25 @@ async function runCpmComplete() {
 }
 
 /* =========================================
+   환경 토글 — 개발 ↔ 운영
+   ========================================= */
+async function switchEnv(isProd) {
+    const env = isProd ? 'prod' : 'dev';
+    try {
+        const response = await callApi('POST', '/api/env', { env });
+        const d = response.data;
+        document.getElementById('envLabelDev').classList.toggle('env-label-active', !isProd);
+        document.getElementById('envLabelProd').classList.toggle('env-label-active', isProd);
+        appendDivider();
+        appendInfo(`환경 전환 → ${d.label}  (${d.baseUrl})`);
+    } catch (e) {
+        appendError(`환경 전환 실패: ${e.message}`);
+        // 실패 시 토글 원상복구
+        document.getElementById('toggleEnv').checked = !isProd;
+    }
+}
+
+/* =========================================
    Toolbar
    ========================================= */
 function clearLog() {
