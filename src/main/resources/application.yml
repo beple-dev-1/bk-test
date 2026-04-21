@@ -26,4 +26,4 @@ bpay:
     reverse-base-url: https://dev-gift.appplay.co.kr:443
   prod:
     base-url: https://zero.appplay.co.kr
-    reverse-base-url: https://gift.appply.co.kr:8443
+    reverse-base-url: https://gift.appplay.co.kr:8443
