@@ -2,6 +2,7 @@ package com.example.bkpaymenttest.controller.api;
 
 import com.example.bkpaymenttest.common.crypto.CryptoUtils;
 import com.example.bkpaymenttest.config.CryptoProperties;
+import com.example.bkpaymenttest.config.EnvConfig;
 import com.example.bkpaymenttest.dto.common.*;
 import com.example.bkpaymenttest.dto.reverse.*;
 import com.example.bkpaymenttest.service.reverse.ReverseApiService;
@@ -27,6 +28,7 @@ public class InboundApiController {
     private static final String ORG_ID = "PBP2511000011";
 
     private final CryptoProperties  cryptoProperties;
+    private final EnvConfig         envConfig;
     private final ObjectMapper      objectMapper;
     private final ReverseApiService reverseApiService;
 
@@ -60,7 +62,7 @@ public class InboundApiController {
             DataEnvelope envelope, Class<REQ> reqClass,
             java.util.function.Function<REQ, RES> serviceCall, String apiName) {
         try {
-            String key = cryptoProperties.getEncryptKey();
+            String key = cryptoProperties.getKeyFor(envConfig.isProd());
 
             // 복호화
             String plainJson = CryptoUtils.decrypt(envelope.getData(), key);

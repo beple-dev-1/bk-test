@@ -65,7 +65,7 @@ public class BpayClient {
             // 3. COMM + DETAIL 객체 → String → AES-256 GCM 암호화
             //    (Object to String 후 암호화 — CLAUDE.md 요청 흐름 기준)
             String requestPlainCompact = objectMapper.writeValueAsString(request);
-            requestEncryptedData = CryptoUtils.encrypt(requestPlainCompact, cryptoProperties.getEncryptKey());
+            requestEncryptedData = CryptoUtils.encrypt(requestPlainCompact, cryptoProperties.getKeyFor(envConfig.isProd()));
             log.info("[BpayClient] {} | REQ encrypted: {}", apiName, requestEncryptedData);
 
             // 4. { "DATA": "암호화값" } 을 명시적으로 직렬화하여 HTTP POST
@@ -95,7 +95,7 @@ public class BpayClient {
             log.info("[BpayClient] {} | RES encrypted: {}", apiName, responseEncryptedData);
 
             // 6. DATA 값(암호화 String) → AES-256 GCM 복호화 → Plain JSON String
-            responsePlainJson = CryptoUtils.decrypt(responseEncryptedData, cryptoProperties.getEncryptKey());
+            responsePlainJson = CryptoUtils.decrypt(responseEncryptedData, cryptoProperties.getKeyFor(envConfig.isProd()));
             log.info("[BpayClient] {} | RES plain: {}", apiName, responsePlainJson);
 
             // 7. Plain JSON String → BpayApiResponse 역직렬화

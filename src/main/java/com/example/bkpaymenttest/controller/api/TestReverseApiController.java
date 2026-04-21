@@ -166,7 +166,7 @@ public class TestReverseApiController {
         String responsePlainJson     = null;
 
         try {
-            String key = cryptoProperties.getEncryptKey();
+            String key = cryptoProperties.getKeyFor(envConfig.isProd());
 
             // 1. COMM 생성
             String reqDttm = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
